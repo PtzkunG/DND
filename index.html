@@ -1,907 +1,935 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D21 - ลูกเต๋าทำนายโชค 21 หน้า</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js for 3D graphics -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ลูกเต๋า 21 หน้า - 21-Sided Fortune Dice</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Google Fonts (Kanit & Space Grotesk) -->
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body {
-            font-family: 'Kanit', sans-serif;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             user-select: none;
             -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
-        .heading-font {
-            font-family: 'Space Grotesk', 'Kanit', sans-serif;
-        }
-        canvas {
-            touch-action: none;
-        }
-        /* Mobile Dynamic Viewport Fix */
-        .app-viewport {
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #090d16;
+            color: #f1f5f9;
             height: 100vh;
             height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
         }
-        /* Glassmorphism utility */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+
+        /* Ambient Glow Backdrop */
+        .bg-glow {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(9, 13, 22, 0) 70%);
+            pointer-events: none;
+            transition: background 0.6s ease;
+            z-index: 1;
         }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.65);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        /* Top Bar Header */
+        header {
+            width: 100%;
+            max-width: 480px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
         }
-        ::-webkit-scrollbar {
-            width: 4px;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #e2e8f0;
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.5);
+
+        .brand i {
+            color: #818cf8;
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 9999px;
+
+        .icon-btn {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            color: #94a3b8;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        @keyframes resultPulse {
-            0% { transform: scale(0.9); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.9)); }
-            100% { transform: scale(1); opacity: 1; }
+
+        .icon-btn:active {
+            transform: scale(0.92);
         }
-        .animate-result {
-            animation: resultPulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+        /* Main Container */
+        main {
+            width: 100%;
+            max-width: 480px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px 16px;
+            z-index: 10;
         }
-        /* Drawer transitions */
-        .drawer-slide {
+
+        /* Result Display Card */
+        .outcome-card {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.4s ease;
+        }
+
+        .res-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            width: 54px;
+            text-align: center;
+            color: #cbd5e1;
+            line-height: 1;
+        }
+
+        .res-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            margin-bottom: 4px;
+        }
+
+        .res-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+
+        .res-range {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #64748b;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+
+        /* Interactive 3D CSS Polyhedron Container */
+        .dice-stage {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 800px;
+            cursor: pointer;
+        }
+
+        /* Glowing D21 Octagonal Gem */
+        .d21-gem {
+            width: 170px;
+            height: 170px;
+            position: relative;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #0f172a 100%);
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            border: 2px solid rgba(129, 140, 248, 0.4);
+            box-shadow: 0 0 35px rgba(99, 102, 241, 0.4), inset 0 0 25px rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .d21-gem::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+        }
+
+        .d21-gem:active {
+            transform: scale(0.94);
+        }
+
+        .d21-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(129, 140, 248, 0.8);
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .d21-subtext {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #818cf8;
+            margin-top: 4px;
+            letter-spacing: 1px;
+            z-index: 2;
+        }
+
+        /* Rolling Animation */
+        .rolling-anim {
+            animation: tumble 0.15s infinite linear;
+        }
+
+        @keyframes tumble {
+            0% { transform: rotate(0deg) scale(0.95); }
+            25% { transform: rotate(90deg) scale(1.05); }
+            50% { transform: rotate(180deg) scale(0.95); }
+            75% { transform: rotate(270deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(0.95); }
+        }
+
+        /* Tier Legend Grid */
+        .tier-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin: 12px 0;
+        }
+
+        .tier-card {
+            padding: 8px 4px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.7rem;
+            border: 1px solid transparent;
+        }
+
+        .tier-card .num {
+            font-weight: 800;
+            font-size: 0.75rem;
+        }
+
+        .tier-1 { background: rgba(136, 19, 55, 0.3); border-color: rgba(225, 29, 72, 0.4); color: #fda4af; }
+        .tier-1 .num { color: #f43f5e; }
+
+        .tier-2 { background: rgba(30, 41, 59, 0.5); border-color: rgba(51, 65, 85, 0.6); color: #cbd5e1; }
+        .tier-2 .num { color: #e2e8f0; }
+
+        .tier-3 { background: rgba(8, 47, 73, 0.4); border-color: rgba(6, 182, 212, 0.4); color: #a5f3fc; }
+        .tier-3 .num { color: #22d3ee; }
+
+        .tier-4 { background: rgba(69, 26, 3, 0.4); border-color: rgba(245, 158, 11, 0.5); color: #fde68a; }
+        .tier-4 .num { color: #fbbf24; }
+
+        /* Action Buttons */
+        .action-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b 0%, #6366f1 50%, #06b6d4 100%);
+            background-size: 200% 200%;
+            border: none;
+            color: #ffffff;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            padding: 14px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fbbf24;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.95);
+            background: #334155;
+        }
+
+        /* History Slide-Up Panel */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            border-top: 1px solid #334155;
+            border-radius: 24px 24px 0 0;
+            padding: 16px 20px 24px;
+            z-index: 100;
+            transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+
+        .sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .sheet-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #334155;
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+
+        .stat-box .val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #818cf8;
+        }
+
+        .stat-box .lbl {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 240px;
+        }
+
+        .history-item {
+            background: #1e293b;
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .hist-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-family: 'Orbitron', sans-serif;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 app-viewport flex flex-col justify-between overflow-hidden selection:bg-indigo-500 selection:text-white">
+<body>
 
-    <!-- Mobile Top Header Bar -->
-    <header class="w-full glass-panel shrink-0 z-30 px-4 py-2.5 border-b border-slate-800/80">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
-                    <span class="heading-font font-bold text-lg text-white">21</span>
-                </div>
-                <div>
-                    <h1 class="heading-font font-bold text-base tracking-tight leading-none text-white">ลูกเต๋าทำนายโชค</h1>
-                    <p class="text-[10px] text-slate-400">D21 Fortune Dice Roller</p>
-                </div>
-            </div>
+    <!-- Ambient Glow Background -->
+    <div id="bgGlow" class="bg-glow"></div>
 
-            <!-- Quick Action Controls -->
-            <div class="flex items-center space-x-1.5">
-                <button id="soundToggleBtn" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700/50" title="เปิด/ปิด เสียง">
-                    <i id="soundIcon" class="fas fa-volume-high text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
-                </button>
-                <button id="drawerToggleBtn" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700/50 relative" title="ดูสถิติและประวัติ">
-                    <i class="fas fa-chart-pie text-cyan-400 w-4 h-4 flex items-center justify-center"></i>
-                </button>
-                <button id="settingsToggleBtn" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-700/50" title="ตั้งค่าธีม">
-                    <i class="fas fa-palette text-pink-400 w-4 h-4 flex items-center justify-center"></i>
-                </button>
-            </div>
+    <!-- Top Navigation Header -->
+    <header>
+        <div class="brand">
+            <i class="fas fa-dice-d20"></i>
+            <span>ลูกเต๋า 21 หน้า</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button id="soundBtn" class="icon-btn" title="เปิด/ปิด เสียง">
+                <i id="soundIcon" class="fas fa-volume-high"></i>
+            </button>
+            <button id="historyBtn" class="icon-btn" title="ประวัติการทอย">
+                <i class="fas fa-clock-rotate-left"></i>
+            </button>
         </div>
     </header>
 
-    <!-- Main Viewport: Fixed Layout (No Page Scroll) -->
-    <main class="flex-1 w-full max-w-md mx-auto p-3 flex flex-col justify-between items-center relative overflow-hidden">
+    <!-- Main Mobile Layout -->
+    <main>
         
-        <!-- Background Ambient Glow -->
-        <div id="bgGlow" class="absolute w-64 h-64 rounded-full bg-indigo-600/20 filter blur-3xl pointer-events-none transition-all duration-700 top-1/3"></div>
-
-        <!-- Touch Hint Badge -->
-        <div class="z-10 text-[11px] text-slate-400 flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full border border-slate-800 shadow-md">
-            <i class="fas fa-hand-pointer text-cyan-400 animate-pulse"></i> ลากหมุน 3D / แตะเพื่อทอย
+        <!-- Result Display Card -->
+        <div id="outcomeCard" class="outcome-card">
+            <div id="resNum" class="res-number">--</div>
+            <div class="res-info">
+                <span id="resBadge" class="badge">พร้อมทอย</span>
+                <div id="resTitle" class="res-title">กดปุ่มสุ่มโชคชะตา 21 หน้า</div>
+            </div>
+            <div id="resRange" class="res-range">1-21</div>
         </div>
 
-        <!-- 3D Canvas Container -->
-        <div id="canvasContainer" class="w-full flex-1 max-h-[280px] sm:max-h-[340px] cursor-grab active:cursor-grabbing relative my-auto"></div>
-
-        <!-- Outcome Result Banner -->
-        <div id="outcomeBanner" class="w-full glass-card p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all duration-300 border-slate-700/60 shrink-0 mb-2">
-            <div class="flex items-center gap-3">
-                <div id="resultDisplay" class="heading-font text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-indigo-300 to-cyan-300 leading-none min-w-[50px] text-center">
-                    --
-                </div>
-                <div>
-                    <span id="tierBadge" class="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700 mb-0.5">
-                        พร้อมทอย
-                    </span>
-                    <h3 id="tierTitle" class="heading-font text-sm sm:text-base font-bold text-slate-200 leading-tight">
-                        กดปุ่มล่างสุดเพื่อทำนายโชค
-                    </h3>
-                </div>
-            </div>
-            <div id="tierDesc" class="text-[10px] text-slate-400 text-right max-w-[120px] leading-tight">
-                สุ่มตัวเลข 1 ถึง 21
+        <!-- Dynamic D21 Octagonal Crystal Polyhedron -->
+        <div class="dice-stage" id="diceStage">
+            <div id="d21Gem" class="d21-gem">
+                <div id="d21Num" class="d21-number">21</div>
+                <div id="d21Sub" class="d21-subtext"><i class="fas fa-touch-app"></i> แตะเพื่อสุ่ม</div>
             </div>
         </div>
 
-        <!-- Quick Fortune Tiers Legend Indicator -->
-        <div class="w-full grid grid-cols-4 gap-1.5 text-center text-[10px] shrink-0 mb-2">
-            <div class="p-1.5 rounded-lg bg-rose-950/40 border border-rose-800/40 text-rose-300">
-                <div class="font-bold text-rose-400">1-7</div>
-                <div>🔴 โชคร้าย</div>
+        <!-- Fortune Tier Legend Card -->
+        <div class="tier-grid">
+            <div class="tier-card tier-1">
+                <div class="num">1-7</div>
+                <div>โชคร้าย</div>
             </div>
-            <div class="p-1.5 rounded-lg bg-slate-800/40 border border-slate-700/40 text-slate-300">
-                <div class="font-bold text-slate-300">8-13</div>
-                <div>⚪ ปกติ</div>
+            <div class="tier-card tier-2">
+                <div class="num">8-13</div>
+                <div>ปกติ</div>
             </div>
-            <div class="p-1.5 rounded-lg bg-cyan-950/40 border border-cyan-800/40 text-cyan-300">
-                <div class="font-bold text-cyan-400">14-19</div>
-                <div>🔵 ปานกลาง</div>
+            <div class="tier-card tier-3">
+                <div class="num">14-19</div>
+                <div>โชคปานกลาง</div>
             </div>
-            <div class="p-1.5 rounded-lg bg-amber-950/50 border border-amber-500/40 text-amber-300">
-                <div class="font-bold text-amber-400">20-21</div>
-                <div>👑 ดีสุดๆ</div>
+            <div class="tier-card tier-4">
+                <div class="num">20-21</div>
+                <div>โชคดีสุดๆ</div>
             </div>
         </div>
+
+        <!-- Action Control Buttons -->
+        <div class="action-grid">
+            <button id="rollBtn" class="btn-primary">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <span>ทำนายโชคชะตา</span>
+            </button>
+            <button id="quick5Btn" class="btn-secondary">
+                <i class="fas fa-bolt"></i>
+                <span>5x</span>
+            </button>
+        </div>
+
     </main>
 
-    <!-- Mobile Action Footer Bar -->
-    <footer class="w-full glass-panel shrink-0 p-3 border-t border-slate-800 z-20">
-        <div class="max-w-md mx-auto flex items-center gap-2">
-            <button id="rollBtn" class="flex-1 h-14 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-400 hover:via-purple-500 hover:to-indigo-500 text-white font-bold text-lg heading-font shadow-lg shadow-indigo-500/30 active:scale-95 transition-all duration-150 flex items-center justify-center gap-2 text-center">
-                <i class="fas fa-dice-d20 text-2xl"></i>
-                <span>ทอยลูกเต๋า D21</span>
-            </button>
-            <button id="quickRoll5Btn" class="w-14 h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold border border-slate-700 active:scale-95 flex flex-col items-center justify-center shrink-0" title="ทอยเร็ว 5 ครั้ง">
-                <i class="fas fa-bolt text-lg"></i>
-                <span class="text-[9px] text-slate-300">5x</span>
+    <!-- History Bottom Sheet Drawer -->
+    <div id="sheetBackdrop" class="sheet-backdrop"></div>
+    <div id="bottomSheet" class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3 style="font-weight: 700; font-size: 1rem;">ประวัติการทอย & สถิติ</h3>
+            <button id="resetBtn" style="background:none; border:none; color:#ef4444; font-size:0.8rem; cursor:pointer; font-weight:600;">
+                <i class="fas fa-trash"></i> ล้างประวัติ
             </button>
         </div>
-    </footer>
 
-    <!-- Mobile Bottom Sheet Drawer (Stats & History) -->
-    <div id="bottomDrawer" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="drawerContent" class="absolute bottom-0 left-0 right-0 max-w-md mx-auto glass-panel rounded-t-3xl p-4 border-t border-slate-700 max-h-[85vh] flex flex-col translate-y-full drawer-slide">
-            
-            <!-- Drawer Drag Handle -->
-            <div class="w-full flex justify-center pb-2 cursor-pointer" id="drawerHandle">
-                <div class="w-12 h-1.5 rounded-full bg-slate-700"></div>
+        <div class="stats-summary">
+            <div class="stat-box">
+                <div id="statTotal" class="val">0</div>
+                <div class="lbl">ทอยทั้งหมด (ครั้ง)</div>
             </div>
-
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-                <h3 class="heading-font font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fas fa-chart-line text-cyan-400"></i> สถิติและประวัติการทอย
-                </h3>
-                <button id="closeDrawerBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
-                    <i class="fas fa-xmark text-lg"></i>
-                </button>
+            <div class="stat-box">
+                <div id="statAvg" class="val">0.0</div>
+                <div class="lbl">ค่าเฉลี่ยแต้ม</div>
             </div>
+        </div>
 
-            <!-- Stats & History Scrollable Container -->
-            <div class="overflow-y-auto space-y-4 pr-1 pb-4 flex-1">
-                <!-- Stats Breakdown Grid -->
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="glass-card p-2.5 rounded-xl">
-                        <span class="text-[10px] text-slate-400 block mb-0.5">จำนวนครั้งทั้งหมด</span>
-                        <span id="statTotal" class="heading-font font-bold text-xl text-indigo-400">0</span>
-                    </div>
-                    <div class="glass-card p-2.5 rounded-xl">
-                        <span class="text-[10px] text-slate-400 block mb-0.5">ค่าเฉลี่ยตัวเลข</span>
-                        <span id="statAvg" class="heading-font font-bold text-xl text-purple-400">0.0</span>
-                    </div>
-                </div>
-
-                <!-- Tier Ratio breakdown -->
-                <div class="space-y-1.5 text-xs">
-                    <div class="flex justify-between items-center bg-rose-950/40 p-2 rounded-lg border border-rose-800/40">
-                        <span class="text-rose-300 font-medium">🔴 1-7 โชคร้าย</span>
-                        <span id="countBad" class="font-bold text-rose-400">0 (0%)</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
-                        <span class="text-slate-300 font-medium">⚪ 8-13 ปกติ</span>
-                        <span id="countNormal" class="font-bold text-slate-400">0 (0%)</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-cyan-950/40 p-2 rounded-lg border border-cyan-800/40">
-                        <span class="text-cyan-300 font-medium">🔵 14-19 โชคปานกลาง</span>
-                        <span id="countMedium" class="font-bold text-cyan-400">0 (0%)</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-amber-950/50 p-2 rounded-lg border border-amber-500/40">
-                        <span class="text-amber-300 font-medium">👑 20-21 โชคดีสุดๆ</span>
-                        <span id="countLucky" class="font-bold text-amber-400">0 (0%)</span>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center pt-2">
-                    <h4 class="heading-font font-bold text-sm text-slate-300">ประวัติการทอย</h4>
-                    <button id="resetStatsBtn" class="text-xs text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1">
-                        <i class="fas fa-rotate-left"></i> ล้างประวัติ
-                    </button>
-                </div>
-
-                <div id="historyList" class="space-y-2 min-h-[120px]">
-                    <div id="emptyHistoryMsg" class="text-center py-6 text-slate-500 text-xs italic">
-                        ยังไม่มีประวัติการทอย กดปุ่มทอยลูกเต๋าเพื่อเริ่มต้น!
-                    </div>
-                </div>
+        <div id="historyList" class="history-list">
+            <div id="emptyMsg" style="text-align: center; color: #64748b; padding: 20px 0; font-size: 0.85rem;">
+                ยังไม่มีประวัติการทอย
             </div>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-250 p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-5 border border-slate-700 shadow-2xl transform scale-95 transition-transform duration-250" id="settingsModalContent">
-            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
-                <h3 class="heading-font font-bold text-lg text-white flex items-center gap-2">
-                    <i class="fas fa-sliders text-indigo-400"></i> การตั้งค่า
-                </h3>
-                <button id="closeSettingsBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
-                    <i class="fas fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                <!-- Haptic Toggle -->
-                <div class="flex justify-between items-center">
-                    <div>
-                        <label class="text-xs font-semibold text-slate-200">ระบบสั่น (Haptic Feedback)</label>
-                        <p class="text-[10px] text-slate-400">การสั่นเตือนบนมือถือเมื่อทอยลูกเต๋า</p>
-                    </div>
-                    <input type="checkbox" id="hapticToggle" checked class="w-5 h-5 accent-indigo-500 rounded cursor-pointer">
-                </div>
-
-                <!-- Dice Theme Selection -->
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">ธีมสีลูกเต๋า</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button data-theme="cosmic" class="theme-btn p-2.5 rounded-xl glass-card border-indigo-500/50 hover:border-indigo-500 text-[11px] font-medium text-center flex flex-col items-center gap-1.5">
-                            <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-pink-500 shadow-md"></span>
-                            คอสทิค
-                        </button>
-                        <button data-theme="gold" class="theme-btn p-2.5 rounded-xl glass-card border-slate-700 hover:border-amber-500 text-[11px] font-medium text-center flex flex-col items-center gap-1.5">
-                            <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-300 shadow-md"></span>
-                            ทองคำ
-                        </button>
-                        <button data-theme="cyber" class="theme-btn p-2.5 rounded-xl glass-card border-slate-700 hover:border-cyan-500 text-[11px] font-medium text-center flex flex-col items-center gap-1.5">
-                            <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-cyan-500 to-teal-300 shadow-md"></span>
-                            ไซเบอร์
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Sound Volume Slider -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">ระดับเสียงเอฟเฟกต์</label>
-                        <span id="volumeValue" class="text-xs text-indigo-400 font-mono">80%</span>
-                    </div>
-                    <input type="range" id="volumeSlider" min="0" max="100" value="80" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript Application Logic -->
     <script>
-        /**
-         * Mobile Haptic Feedback Helper
-         */
-        function triggerHaptic(type = 'impact') {
-            if (!navigator.vibrate || !window.appHapticsEnabled) return;
-            try {
-                if (type === 'impact') navigator.vibrate(12);
-                else if (type === 'bounce') navigator.vibrate([15, 30, 20]);
-                else if (type === 'win') navigator.vibrate([40, 60, 40, 60, 100]);
-            } catch (e) {
-                // Ignore silent unsupported browser exceptions
-            }
-        }
-
-        window.appHapticsEnabled = true;
-
-        /**
-         * Fortune Tiers Definition
-         */
-        const FORTUNE_TIERS = {
-            BAD: {
-                name: 'โชคร้าย',
-                range: '1-7',
-                colorClass: 'text-rose-400',
-                badgeClass: 'bg-rose-950/80 text-rose-300 border-rose-700/60',
-                bannerBorder: 'border-rose-500/50 bg-rose-950/20',
-                desc: 'ระมัดระวังตัวเป็นพิเศษ อาจมีเรื่องติดขัดเล็กน้อย',
-                pitch: 0.6
-            },
-            NORMAL: {
-                name: 'ปกติ',
-                range: '8-13',
-                colorClass: 'text-slate-200',
-                badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
-                bannerBorder: 'border-slate-700/60 bg-slate-900/40',
-                desc: 'ราบรื่นเรื่อยๆ ดำเนินชีวิตตามปกติ',
-                pitch: 0.9
-            },
-            MEDIUM: {
-                name: 'โชคปานกลาง',
-                range: '14-19',
-                colorClass: 'text-cyan-400',
-                badgeClass: 'bg-cyan-950/80 text-cyan-300 border-cyan-700/60',
-                bannerBorder: 'border-cyan-500/50 bg-cyan-950/20',
-                desc: 'มีเกณฑ์ได้รับข่าวดีหรือสิ่งดีๆ เข้ามา!',
-                pitch: 1.2
-            },
-            LUCKY: {
-                name: 'โชคดีสุดๆ',
-                range: '20-21',
-                colorClass: 'text-amber-400 font-extrabold',
-                badgeClass: 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 border-amber-300 font-bold',
-                bannerBorder: 'border-amber-500/80 bg-amber-950/30 shadow-lg shadow-amber-500/10',
-                desc: 'ดวงปังสุดขีด! มีโชคลาภใหญ่หรือความสำเร็จอันงดงาม!',
-                pitch: 1.5
-            }
-        };
-
-        function getFortune(val) {
-            if (val >= 1 && val <= 7) return FORTUNE_TIERS.BAD;
-            if (val >= 8 && val <= 13) return FORTUNE_TIERS.NORMAL;
-            if (val >= 14 && val <= 19) return FORTUNE_TIERS.MEDIUM;
-            return FORTUNE_TIERS.LUCKY;
-        }
-
-        // ... existing SoundEngine code ...
-        class SoundEngine {
+        // Web Audio Synthesizer for Tumbling Sounds & Fortune Cues
+        class SoundSynth {
             constructor() {
-                this.ctx = null;
-                this.volume = 0.8;
                 this.muted = false;
+                this.ctx = null;
             }
 
             init() {
                 if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    this.ctx = new AudioContext();
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
                 }
-                if (this.ctx.state === 'suspended') {
+                if (this.ctx && this.ctx.state === 'suspended') {
                     this.ctx.resume();
                 }
             }
 
-            playRollImpact(pitch = 1.0, isFinal = false) {
-                if (this.muted || this.volume <= 0) return;
+            // Tumbling tick / bounce sound during roll cycle
+            playPop(freq = 400) {
+                if (this.muted) return;
                 this.init();
+                if (!this.ctx) return;
 
                 try {
-                    const now = this.ctx.currentTime;
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
-                    
-                    osc.type = isFinal ? 'triangle' : 'sine';
-                    osc.frequency.setValueAtTime((isFinal ? 120 : 180) * pitch, now);
-                    osc.frequency.exponentialRampToValueAtTime(30, now + (isFinal ? 0.25 : 0.08));
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.04);
 
-                    gain.gain.setValueAtTime(this.volume * (isFinal ? 0.9 : 0.4), now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + (isFinal ? 0.25 : 0.08));
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
 
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.04);
+                } catch(e) {}
+            }
 
-                    osc.start(now);
-                    osc.stop(now + (isFinal ? 0.25 : 0.08));
-                } catch (e) {
-                    console.warn("Audio error:", e);
+            // Sound cue when roll lands on Tier 1 (โชคร้าย 1-7)
+            playBad() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.3);
+
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.3);
+                } catch(e) {}
+            }
+
+            // Sound cue when roll lands on Tier 2 (ปกติ 8-13)
+            playNormal() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                    osc.frequency.setValueAtTime(554.37, this.ctx.currentTime + 0.08);
+
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.25);
+                } catch(e) {}
+            }
+
+            // Sound cue when roll lands on Tier 3 (โชคปานกลาง 14-19)
+            playGood() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    [523.25, 659.25, 783.99].forEach((f, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.06);
+
+                        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.06 + 0.2);
+
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(this.ctx.currentTime + i * 0.06);
+                        osc.stop(this.ctx.currentTime + i * 0.06 + 0.2);
+                    });
+                } catch(e) {}
+            }
+
+            // Sound cue when roll lands on Tier 4 (โชคดีสุดๆ 20-21)
+            playWin() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.08);
+
+                        gain.gain.setValueAtTime(0.25, this.ctx.currentTime + i * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.08 + 0.35);
+
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(this.ctx.currentTime + i * 0.08);
+                        osc.stop(this.ctx.currentTime + i * 0.08 + 0.35);
+                    });
+                } catch(e) {}
+            }
+
+            // Helper to play appropriate sound based on result value
+            playResultSound(val) {
+                if (val >= 1 && val <= 7) {
+                    this.playBad();
+                } else if (val >= 8 && val <= 13) {
+                    this.playNormal();
+                } else if (val >= 14 && val <= 19) {
+                    this.playGood();
+                } else {
+                    this.playWin();
                 }
             }
+        }
 
-            playFanfare() {
-                if (this.muted || this.volume <= 0) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major chord jackpot sound
-                notes.forEach((freq, idx) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(freq, now + idx * 0.09);
-                    
-                    gain.gain.setValueAtTime(0, now + idx * 0.09);
-                    gain.gain.linearRampToValueAtTime(this.volume * 0.5, now + idx * 0.09 + 0.02);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.6);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-
-                    osc.start(now + idx * 0.09);
-                    osc.stop(now + idx * 0.09 + 0.6);
-                });
+        // Fortune Tier Mapping
+        function getFortune(val) {
+            if (val >= 1 && val <= 7) {
+                return {
+                    name: 'โชคร้าย',
+                    desc: 'ระมัดระวังเรื่องรอบตัว มีอุปสรรคเข้ามา',
+                    range: '1-7',
+                    color: '#f43f5e',
+                    badgeBg: 'rgba(136, 19, 55, 0.6)',
+                    badgeColor: '#fda4af',
+                    borderColor: 'rgba(225, 29, 72, 0.6)'
+                };
+            } else if (val >= 8 && val <= 13) {
+                return {
+                    name: 'ปกติ',
+                    desc: 'เรียบง่าย สมดุล ไม่มีเรื่องร้ายหรือดีพิเศษ',
+                    range: '8-13',
+                    color: '#cbd5e1',
+                    badgeBg: '#1e293b',
+                    badgeColor: '#cbd5e1',
+                    borderColor: 'rgba(51, 65, 85, 0.6)'
+                };
+            } else if (val >= 14 && val <= 19) {
+                return {
+                    name: 'โชคปานกลาง',
+                    desc: 'มีเกณฑ์สมหวัง สิ่งที่หวังคืบหน้าได้ดี',
+                    range: '14-19',
+                    color: '#22d3ee',
+                    badgeBg: 'rgba(8, 47, 73, 0.6)',
+                    badgeColor: '#a5f3fc',
+                    borderColor: 'rgba(6, 182, 212, 0.6)'
+                };
+            } else {
+                return {
+                    name: 'โชคดีสุดๆ',
+                    desc: 'ดวงปังสูงสุด! ประสบความสำเร็จและได้โชคใหญ่',
+                    range: '20-21',
+                    color: '#fbbf24',
+                    badgeBg: 'rgba(69, 26, 3, 0.8)',
+                    badgeColor: '#fde68a',
+                    borderColor: 'rgba(245, 158, 11, 0.7)'
+                };
             }
         }
 
-        // ... existing Geometry & Three.js code ...
-        function createD21Geometry() {
-            const geom = new THREE.BufferGeometry();
-            const vertices = [];
-            const uvs = [];
-
-            const N = 7;
-            const radius = 1.8;
-            const height = 2.2;
-
-            const topApex = [0, height, 0];
-            const bottomApex = [0, -height, 0];
-
-            const upperRing = [];
-            const lowerRing = [];
-
-            for (let i = 0; i < N; i++) {
-                const angleU = (i * 2 * Math.PI) / N;
-                const angleL = ((i + 0.5) * 2 * Math.PI) / N;
-
-                upperRing.push([radius * Math.cos(angleU), height * 0.35, radius * Math.sin(angleU)]);
-                lowerRing.push([radius * Math.cos(angleL), -height * 0.35, radius * Math.sin(angleL)]);
-            }
-
-            function addTriangle(p1, p2, p3) {
-                vertices.push(...p1, ...p2, ...p3);
-                uvs.push(0.5, 1, 0, 0, 1, 0);
-            }
-
-            for (let i = 0; i < N; i++) {
-                const next = (i + 1) % N;
-                addTriangle(topApex, upperRing[i], upperRing[next]);
-            }
-            for (let i = 0; i < N; i++) {
-                const next = (i + 1) % N;
-                addTriangle(upperRing[i], lowerRing[i], upperRing[next]);
-                addTriangle(upperRing[next], lowerRing[i], lowerRing[next]);
-            }
-            for (let i = 0; i < N; i++) {
-                const next = (i + 1) % N;
-                addTriangle(bottomApex, lowerRing[next], lowerRing[i]);
-            }
-
-            geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-            geom.computeVertexNormals();
-
-            return geom;
-        }
-
+        // Main App Handler
         class D21App {
             constructor() {
-                this.sound = new SoundEngine();
+                this.sound = new SoundSynth();
                 this.history = [];
                 this.isRolling = false;
-                this.rollDuration = 1400;
 
-                this.themes = {
-                    cosmic: { dieColor: 0x6366f1, specular: 0xec4899, bgGlow: 'rgba(99, 102, 241, 0.25)', wireframe: 0xa5b4fc },
-                    gold: { dieColor: 0xd97706, specular: 0xfde047, bgGlow: 'rgba(217, 119, 6, 0.25)', wireframe: 0xfef08a },
-                    cyber: { dieColor: 0x10b981, specular: 0x6ee7b7, bgGlow: 'rgba(16, 185, 129, 0.25)', wireframe: 0xa7f3d0 }
-                };
-                this.currentTheme = 'cosmic';
-
-                this.initDOM();
-                this.initThree();
-                this.bindEvents();
-                this.animate();
-            }
-
-            initDOM() {
                 this.dom = {
                     rollBtn: document.getElementById('rollBtn'),
-                    quickRoll5Btn: document.getElementById('quickRoll5Btn'),
-                    resultDisplay: document.getElementById('resultDisplay'),
-                    tierBadge: document.getElementById('tierBadge'),
-                    tierTitle: document.getElementById('tierTitle'),
-                    tierDesc: document.getElementById('tierDesc'),
-                    outcomeBanner: document.getElementById('outcomeBanner'),
+                    quick5Btn: document.getElementById('quick5Btn'),
+                    diceStage: document.getElementById('diceStage'),
+                    d21Gem: document.getElementById('d21Gem'),
+                    d21Num: document.getElementById('d21Num'),
+                    d21Sub: document.getElementById('d21Sub'),
+                    resNum: document.getElementById('resNum'),
+                    resBadge: document.getElementById('resBadge'),
+                    resTitle: document.getElementById('resTitle'),
+                    resRange: document.getElementById('resRange'),
+                    outcomeCard: document.getElementById('outcomeCard'),
+                    bgGlow: document.getElementById('bgGlow'),
+                    soundBtn: document.getElementById('soundBtn'),
+                    soundIcon: document.getElementById('soundIcon'),
+                    historyBtn: document.getElementById('historyBtn'),
+                    bottomSheet: document.getElementById('bottomSheet'),
+                    sheetBackdrop: document.getElementById('sheetBackdrop'),
                     historyList: document.getElementById('historyList'),
-                    emptyHistoryMsg: document.getElementById('emptyHistoryMsg'),
+                    emptyMsg: document.getElementById('emptyMsg'),
                     statTotal: document.getElementById('statTotal'),
                     statAvg: document.getElementById('statAvg'),
-                    countBad: document.getElementById('countBad'),
-                    countNormal: document.getElementById('countNormal'),
-                    countMedium: document.getElementById('countMedium'),
-                    countLucky: document.getElementById('countLucky'),
-                    resetStatsBtn: document.getElementById('resetStatsBtn'),
-                    soundToggleBtn: document.getElementById('soundToggleBtn'),
-                    soundIcon: document.getElementById('soundIcon'),
-                    statsToggleBtn: document.getElementById('statsToggleBtn'),
-                    statsPanel: document.getElementById('statsPanel'),
-                    settingsToggleBtn: document.getElementById('settingsToggleBtn'),
-                    settingsModal: document.getElementById('settingsModal'),
-                    settingsModalContent: document.getElementById('settingsModalContent'),
-                    closeSettingsBtn: document.getElementById('closeSettingsBtn'),
-                    volumeSlider: document.getElementById('volumeSlider'),
-                    volumeValue: document.getElementById('volumeValue'),
-                    bgGlow: document.getElementById('bgGlow')
-                };
-            }
-
-            initThree() {
-                const container = document.getElementById('canvasContainer');
-                this.scene = new THREE.Scene();
-
-                this.camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-                this.camera.position.set(0, 0, 7.5);
-
-                this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-                this.renderer.setSize(container.clientWidth, container.clientHeight);
-                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                container.appendChild(this.renderer.domElement);
-
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-                this.scene.add(ambientLight);
-
-                const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-                dirLight1.position.set(5, 10, 7);
-                this.scene.add(dirLight1);
-
-                this.diceGroup = new THREE.Group();
-                this.scene.add(this.diceGroup);
-
-                const geometry = createD21Geometry();
-                const theme = this.themes[this.currentTheme];
-                this.material = new THREE.MeshPhongMaterial({
-                    color: theme.dieColor,
-                    specular: theme.specular,
-                    shininess: 60,
-                    flatShading: true,
-                    side: THREE.DoubleSide
-                });
-
-                this.diceMesh = new THREE.Mesh(geometry, this.material);
-                this.diceGroup.add(this.diceMesh);
-
-                const wireframeGeom = new THREE.WireframeGeometry(geometry);
-                this.wireframeMat = new THREE.LineBasicMaterial({ color: theme.wireframe, transparent: true, opacity: 0.35 });
-                const wireframe = new THREE.LineSegments(wireframeGeom, this.wireframeMat);
-                this.diceGroup.add(wireframe);
-
-                this.idleSpeed = { x: 0.005, y: 0.008 };
-                this.isDragging = false;
-                this.previousMousePosition = { x: 0, y: 0 };
-
-                const setupDrag = (element) => {
-                    const onPointerDown = (e) => {
-                        this.isDragging = true;
-                        this.previousMousePosition = {
-                            x: e.clientX || (e.touches && e.touches[0].clientX),
-                            y: e.clientY || (e.touches && e.touches[0].clientY)
-                        };
-                    };
-
-                    const onPointerMove = (e) => {
-                        if (!this.isDragging || this.isRolling) return;
-                        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-                        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-                        const deltaX = clientX - this.previousMousePosition.x;
-                        const deltaY = clientY - this.previousMousePosition.y;
-
-                        this.diceGroup.rotation.y += deltaX * 0.01;
-                        this.diceGroup.rotation.x += deltaY * 0.01;
-
-                        this.previousMousePosition = { x: clientX, y: clientY };
-                    };
-
-                    const onPointerUp = () => { this.isDragging = false; };
-
-                    element.addEventListener('mousedown', onPointerDown);
-                    window.addEventListener('mousemove', onPointerMove);
-                    window.addEventListener('mouseup', onPointerUp);
-
-                    element.addEventListener('touchstart', onPointerDown, { passive: true });
-                    window.addEventListener('touchmove', onPointerMove, { passive: true });
-                    window.addEventListener('touchend', onPointerUp);
+                    resetBtn: document.getElementById('resetBtn')
                 };
 
-                setupDrag(container);
-
-                window.addEventListener('resize', () => {
-                    const width = container.clientWidth;
-                    const height = container.clientHeight;
-                    this.camera.aspect = width / height;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(width, height);
-                });
+                this.bindEvents();
             }
 
             bindEvents() {
-                this.dom.rollBtn.addEventListener('click', () => this.rollDice());
-                this.dom.quickRoll5Btn.addEventListener('click', () => this.quickRollMultiple(5));
+                this.dom.rollBtn.addEventListener('click', () => this.roll());
+                this.dom.diceStage.addEventListener('click', () => this.roll());
+                this.dom.quick5Btn.addEventListener('click', () => this.quick5());
 
-                document.getElementById('canvasContainer').addEventListener('click', () => {
-                    if (!this.isRolling) this.rollDice();
-                });
-
-                // Bottom Drawer Toggle Logic
-                const openDrawer = () => {
-                    this.dom.bottomDrawer.classList.remove('opacity-0', 'pointer-events-none');
-                    this.dom.drawerContent.classList.remove('translate-y-full');
-                };
-                const closeDrawer = () => {
-                    this.dom.bottomDrawer.classList.add('opacity-0', 'pointer-events-none');
-                    this.dom.drawerContent.classList.add('translate-y-full');
-                };
-
-                this.dom.drawerToggleBtn.addEventListener('click', openDrawer);
-                this.dom.closeDrawerBtn.addEventListener('click', closeDrawer);
-                this.dom.drawerHandle.addEventListener('click', closeDrawer);
-                this.dom.bottomDrawer.addEventListener('click', (e) => {
-                    if (e.target === this.dom.bottomDrawer) closeDrawer();
-                });
-
-                this.dom.resetStatsBtn.addEventListener('click', () => this.resetStats());
-
-                this.dom.soundToggleBtn.addEventListener('click', () => {
+                this.dom.soundBtn.addEventListener('click', () => {
                     this.sound.muted = !this.sound.muted;
-                    this.dom.soundIcon.className = this.sound.muted 
-                        ? 'fas fa-volume-xmark text-slate-500 w-4 h-4 flex items-center justify-center'
-                        : 'fas fa-volume-high text-indigo-400 w-4 h-4 flex items-center justify-center';
+                    this.dom.soundIcon.className = this.sound.muted ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
                 });
 
-                const closeModal = () => {
-                    this.dom.settingsModal.classList.add('opacity-0', 'pointer-events-none');
-                    this.dom.settingsModalContent.classList.remove('scale-100');
-                    this.dom.settingsModalContent.classList.add('scale-95');
+                const openSheet = () => {
+                    this.dom.bottomSheet.classList.add('open');
+                    this.dom.sheetBackdrop.classList.add('open');
+                };
+                const closeSheet = () => {
+                    this.dom.bottomSheet.classList.remove('open');
+                    this.dom.sheetBackdrop.classList.remove('open');
                 };
 
-                this.dom.settingsToggleBtn.addEventListener('click', () => {
-                    this.dom.settingsModal.classList.remove('opacity-0', 'pointer-events-none');
-                    this.dom.settingsModalContent.classList.remove('scale-95');
-                    this.dom.settingsModalContent.classList.add('scale-100');
-                });
-
-                this.dom.closeSettingsBtn.addEventListener('click', closeModal);
-                this.dom.settingsModal.addEventListener('click', (e) => {
-                    if (e.target === this.dom.settingsModal) closeModal();
-                });
-
-                document.getElementById('hapticToggle').addEventListener('change', (e) => {
-                    window.appHapticsEnabled = e.target.checked;
-                });
-
-                this.dom.volumeSlider.addEventListener('input', (e) => {
-                    const val = parseInt(e.target.value);
-                    this.sound.volume = val / 100;
-                    this.dom.volumeValue.textContent = `${val}%`;
-                });
-
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const themeKey = e.currentTarget.getAttribute('data-theme');
-                        this.setTheme(themeKey);
-                    });
-                });
+                this.dom.historyBtn.addEventListener('click', openSheet);
+                this.dom.sheetBackdrop.addEventListener('click', closeSheet);
+                this.dom.resetBtn.addEventListener('click', () => this.reset());
             }
 
-            rollDice() {
+            vibrate(pattern = 10) {
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(pattern); } catch(e) {}
+                }
+            }
+
+            roll() {
                 if (this.isRolling) return;
                 this.isRolling = true;
-                this.dom.rollBtn.disabled = true;
-                this.dom.rollBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                this.dom.d21Gem.classList.add('rolling-anim');
+                this.dom.d21Sub.textContent = 'กำลังสุ่ม...';
 
-                const finalResult = Math.floor(Math.random() * 21) + 1;
-                this.sound.playRollImpact(0.8);
-                triggerHaptic('bounce');
-
+                const result = Math.floor(Math.random() * 21) + 1;
+                const duration = 1000;
                 const startTime = performance.now();
-                const startRotation = { x: this.diceGroup.rotation.x, y: this.diceGroup.rotation.y, z: this.diceGroup.rotation.z };
-                const targetRotation = {
-                    x: startRotation.x + Math.PI * (4 + Math.random() * 4),
-                    y: startRotation.y + Math.PI * (4 + Math.random() * 4),
-                    z: startRotation.z + Math.PI * (2 + Math.random() * 2)
-                };
 
-                let lastSoundTime = 0;
-
-                const animateRoll = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / this.rollDuration, 1);
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-
-                    this.diceGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeOut;
-                    this.diceGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easeOut;
-                    this.diceGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easeOut;
-                    this.diceGroup.position.y = Math.sin(progress * Math.PI * 3) * (1 - progress) * 0.8;
-
-                    if (elapsed - lastSoundTime > 120 * (1 + progress * 2) && progress < 0.9) {
-                        this.sound.playRollImpact(0.9 + Math.random() * 0.4);
-                        triggerHaptic('impact');
-                        lastSoundTime = elapsed;
-                    }
-
-                    if (progress < 0.95) {
-                        const tempVal = Math.floor(Math.random() * 21) + 1;
-                        this.dom.resultDisplay.textContent = tempVal;
-                        this.dom.resultDisplay.classList.remove('animate-result');
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(animateRoll);
+                const animate = (now) => {
+                    const elapsed = now - startTime;
+                    if (elapsed < duration) {
+                        const temp = Math.floor(Math.random() * 21) + 1;
+                        this.dom.d21Num.textContent = temp;
+                        this.dom.resNum.textContent = temp;
+                        this.sound.playPop(300 + Math.random() * 300);
+                        this.vibrate(5);
+                        setTimeout(() => requestAnimationFrame(animate), 60);
                     } else {
-                        this.onRollComplete(finalResult);
+                        this.finishRoll(result);
                     }
                 };
 
-                requestAnimationFrame(animateRoll);
+                requestAnimationFrame(animate);
             }
 
-            onRollComplete(result) {
-                this.isRolling = false;
-                this.dom.rollBtn.disabled = false;
-                this.dom.rollBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                this.diceGroup.position.y = 0;
-
-                const fortune = getFortune(result);
-
-                // Update UI Display
-                this.dom.resultDisplay.textContent = result;
-                this.dom.resultDisplay.className = `heading-font text-4xl sm:text-5xl font-extrabold ${fortune.colorClass} leading-none min-w-[50px] text-center`;
-                this.dom.resultDisplay.classList.add('animate-result');
-
-                this.dom.tierBadge.textContent = fortune.name;
-                this.dom.tierBadge.className = `inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-0.5 border ${fortune.badgeClass}`;
-                this.dom.tierTitle.textContent = `ได้เลข ${result} - ${fortune.name}`;
-                this.dom.tierDesc.textContent = fortune.desc;
-                this.dom.outcomeBanner.className = `w-full glass-card p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all duration-300 ${fortune.bannerBorder} shrink-0 mb-2`;
-
-                this.sound.playRollImpact(fortune.pitch, true);
-
-                // Haptic feedback & celebratory effects
-                if (result >= 20) {
-                    triggerHaptic('win');
-                    this.sound.playFanfare();
-                    if (window.confetti) {
-                        confetti({
-                            particleCount: 90,
-                            spread: 70,
-                            origin: { y: 0.75 }
-                        });
-                    }
-                } else {
-                    triggerHaptic('impact');
-                }
-
-                this.addHistoryRecord(result, fortune);
-            }
-
-            quickRollMultiple(times = 5) {
+            quick5() {
                 if (this.isRolling) return;
                 let count = 0;
                 const interval = setInterval(() => {
-                    if (count >= times) {
+                    if (count >= 5) {
                         clearInterval(interval);
                         return;
                     }
-                    const res = Math.floor(Math.random() * 21) + 1;
-                    const fortune = getFortune(res);
-                    this.addHistoryRecord(res, fortune);
-
-                    this.dom.resultDisplay.textContent = res;
-                    this.dom.resultDisplay.className = `heading-font text-5xl md:text-6xl font-extrabold ${fortune.colorClass} leading-none`;
-                    this.dom.tierBadge.textContent = fortune.name;
-                    this.dom.tierBadge.className = `inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider mb-1 border ${fortune.badgeClass}`;
-                    this.dom.tierTitle.textContent = `ได้เลข ${res} - ${fortune.name}`;
-                    this.dom.tierDesc.textContent = fortune.desc;
-                    this.dom.outcomeBanner.className = `w-full glass-card p-4 rounded-2xl mb-4 border flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300 ${fortune.bannerBorder}`;
-
-                    this.sound.playRollImpact(1.1);
+                    const val = Math.floor(Math.random() * 21) + 1;
+                    const fortune = getFortune(val);
+                    this.updateUI(val, fortune);
+                    this.addHistory(val, fortune);
+                    this.sound.playResultSound(val);
+                    this.vibrate(10);
                     count++;
-                }, 150);
+                }, 220);
             }
 
-            addHistoryRecord(result, fortune) {
-                this.history.unshift({
-                    value: result,
-                    fortune: fortune,
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                });
+            finishRoll(val) {
+                this.isRolling = false;
+                this.dom.d21Gem.classList.remove('rolling-anim');
+                this.dom.d21Sub.innerHTML = '<i class="fas fa-touch-app"></i> แตะเพื่อสุ่ม';
 
-                this.updateHistoryUI();
-                this.updateStatsUI();
-            }
+                const fortune = getFortune(val);
+                this.updateUI(val, fortune);
+                this.addHistory(val, fortune);
 
-            updateHistoryUI() {
-                if (this.history.length === 0) {
-                    this.dom.emptyHistoryMsg.classList.remove('hidden');
-                    return;
+                // Play unique sound corresponding to fortune tier for every roll
+                this.sound.playResultSound(val);
+
+                if (val >= 20) {
+                    if (window.confetti) {
+                        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+                    }
                 }
-                this.dom.emptyHistoryMsg.classList.add('hidden');
+                this.vibrate([15, 30, 15]);
+            }
 
-                const latest = this.history[0];
+            updateUI(val, fortune) {
+                this.dom.d21Num.textContent = val;
+                this.dom.resNum.textContent = val;
+                this.dom.resNum.style.color = fortune.color;
+
+                this.dom.resBadge.textContent = fortune.name;
+                this.dom.resBadge.style.background = fortune.badgeBg;
+                this.dom.resBadge.style.color = fortune.badgeColor;
+
+                this.dom.resTitle.textContent = fortune.desc;
+                this.dom.resRange.textContent = fortune.range;
+                this.dom.outcomeCard.style.borderColor = fortune.borderColor;
+
+                this.dom.bgGlow.style.background = `radial-gradient(circle, ${fortune.color}40 0%, rgba(9, 13, 22, 0) 70%)`;
+            }
+
+            addHistory(val, fortune) {
+                this.history.unshift({ val, fortune, time: new Date().toLocaleTimeString() });
+
+                if (this.dom.emptyMsg) this.dom.emptyMsg.style.display = 'none';
+
                 const item = document.createElement('div');
-                item.className = 'glass-card p-3 rounded-xl flex items-center justify-between transition-all duration-300 transform -translate-y-2 opacity-0';
-
+                item.className = 'history-item';
                 item.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <span class="w-8 h-8 rounded-lg flex items-center justify-center heading-font font-bold text-sm border ${latest.fortune.badgeClass}">
-                            ${latest.value}
-                        </span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="hist-num" style="background:${fortune.badgeBg}; color:${fortune.badgeColor};">
+                            ${val}
+                        </div>
                         <div>
-                            <span class="text-xs font-bold ${latest.fortune.colorClass}">${latest.fortune.name}</span>
-                            <span class="text-[10px] text-slate-400 block">ครั้งที่ ${this.history.length}</span>
+                            <div style="font-weight:700; color:${fortune.color};">${fortune.name}</div>
+                            <div style="font-size:0.65rem; color:#64748b;">แต้ม ${val} (${fortune.range})</div>
                         </div>
                     </div>
-                    <span class="text-[10px] text-slate-500 font-mono">${latest.timestamp}</span>
+                    <div style="font-size:0.7rem; color:#64748b;">${this.history[0].time}</div>
                 `;
 
                 this.dom.historyList.insertBefore(item, this.dom.historyList.firstChild);
 
-                setTimeout(() => {
-                    item.classList.remove('-translate-y-2', 'opacity-0');
-                }, 10);
+                // Stats calculation
+                const vals = this.history.map(h => h.val);
+                this.dom.statTotal.textContent = vals.length;
+                this.dom.statAvg.textContent = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
             }
 
-            updateStatsUI() {
-                if (this.history.length === 0) return;
-
-                const values = this.history.map(h => h.value);
-                const total = values.length;
-                const sum = values.reduce((a, b) => a + b, 0);
-                const avg = (sum / total).toFixed(1);
-
-                const countBad = values.filter(v => v >= 1 && v <= 7).length;
-                const countNormal = values.filter(v => v >= 8 && v <= 13).length;
-                const countMedium = values.filter(v => v >= 14 && v <= 19).length;
-                const countLucky = values.filter(v => v >= 20 && v <= 21).length;
-
-                this.dom.statTotal.textContent = total;
-                this.dom.statAvg.textContent = avg;
-
-                this.dom.countBad.textContent = `${countBad} (${((countBad / total) * 100).toFixed(0)}%)`;
-                this.dom.countNormal.textContent = `${countNormal} (${((countNormal / total) * 100).toFixed(0)}%)`;
-                this.dom.countMedium.textContent = `${countMedium} (${((countMedium / total) * 100).toFixed(0)}%)`;
-                this.dom.countLucky.textContent = `${countLucky} (${((countLucky / total) * 100).toFixed(0)}%)`;
-            }
-
-            resetStats() {
+            reset() {
                 this.history = [];
-                this.dom.historyList.innerHTML = '';
-                this.dom.historyList.appendChild(this.dom.emptyHistoryMsg);
-                this.dom.emptyHistoryMsg.classList.remove('hidden');
-
+                this.dom.historyList.innerHTML = '<div id="emptyMsg" style="text-align: center; color: #64748b; padding: 20px 0; font-size: 0.85rem;">ยังไม่มีประวัติการทอย</div>';
+                this.dom.emptyMsg = document.getElementById('emptyMsg');
                 this.dom.statTotal.textContent = '0';
                 this.dom.statAvg.textContent = '0.0';
-                this.dom.countBad.textContent = '0 (0%)';
-                this.dom.countNormal.textContent = '0 (0%)';
-                this.dom.countMedium.textContent = '0 (0%)';
-                this.dom.countLucky.textContent = '0 (0%)';
-
-                this.dom.resultDisplay.textContent = '--';
-                this.dom.resultDisplay.className = 'heading-font text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-indigo-300 to-emerald-300 leading-none';
-                this.dom.tierBadge.textContent = 'พร้อมทอย';
-                this.dom.tierBadge.className = 'inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700 mb-1';
-                this.dom.tierTitle.textContent = 'กดปุ่มเพื่อทอยลูกเต๋า 21 หน้า';
-                this.dom.tierDesc.textContent = '1-7 (โชคร้าย), 8-13 (ปกติ), 14-19 (โชคปานกลาง), 20-21 (โชคดีสุดๆ)';
-                this.dom.outcomeBanner.className = 'w-full glass-card p-4 rounded-2xl mb-4 border flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300 border-slate-700/60';
-            }
-
-            animate() {
-                requestAnimationFrame(() => this.animate());
-
-                if (!this.isDragging && !this.isRolling) {
-                    this.diceGroup.rotation.x += this.idleSpeed.x;
-                    this.diceGroup.rotation.y += this.idleSpeed.y;
-                }
-
-                this.renderer.render(this.scene, this.camera);
+                this.dom.resNum.textContent = '--';
+                this.dom.resNum.style.color = '#cbd5e1';
+                this.dom.resBadge.textContent = 'พร้อมทอย';
+                this.dom.resBadge.style.background = '#1e293b';
+                this.dom.resBadge.style.color = '#94a3b8';
+                this.dom.resTitle.textContent = 'กดปุ่มสุ่มโชคชะตา 21 หน้า';
+                this.dom.resRange.textContent = '1-21';
+                this.dom.outcomeCard.style.borderColor = 'rgba(51, 65, 85, 0.6)';
+                this.dom.d21Num.textContent = '21';
             }
         }
 
-        window.onload = () => {
+        window.addEventListener('DOMContentLoaded', () => {
             window.app = new D21App();
-        };
+        });
     </script>
 </body>
 </html>
